@@ -2,56 +2,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <argp.h>
 
-#define ARRAY_SIZE 1000000
-#define ROWS 1000
-
-void by_row(int **data);
-void by_column(int **data);
+#include "traverse.c"
+#include "args.c"
 
 int main(int argc, char *argv[])
 {
 
   setbuf(stdout, NULL);
-  if (argc == 1 || strcmp(argv[1], "--row") == -1 || strcmp(argv[1], "--col") == -1)
-  {
-    printf("Please run with either --row or --col\n");
-    return 1;
-  }
+  struct arguments arguments;
 
-  printf("Allocating a %d x %d array of integers...\n", ARRAY_SIZE, ROWS);
-  int **data = malloc(ROWS * sizeof(*data));
-  for (int i = 0; i < ROWS; ++i)
+  set_args(argc, argv, &arguments);
+
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+  printf("Allocating a %d x %d array of integers (%2.2fMB)\n", arguments.columns, arguments.rows, ((float)arguments.columns * arguments.rows * sizeof(int)) / 8 / 1024 / 1024);
+  int **data = malloc(arguments.rows * sizeof(*data));
+  for (int i = 0; i < arguments.rows; ++i)
   {
-    data[i] = malloc(ARRAY_SIZE * sizeof(*(data[i])));
+    data[i] = malloc(arguments.columns * sizeof(*(data[i])));
   }
 
   printf("Filling array with 0 values\n");
-  for (int i = 0; i < ROWS; ++i)
+  for (int i = 0; i < arguments.rows; ++i)
   {
-    memset(data[i], 0, ARRAY_SIZE * sizeof(int));
+    memset(data[i], 0, arguments.columns * sizeof(int));
   }
-
+  
   clock_t time;
+
+  printf("Running with row traversal...");
   time = clock();
+  by_row(data, arguments.rows, arguments.columns);
+  printf("\rRow traversal tooks    %fs\n", (double)time / CLOCKS_PER_SEC);
 
-  if (strcmp(argv[1], "--row") == 0)
-  {
-    printf("Running with row traversal\n");
-    by_row(data);
-  }
-  else
-  {
-    printf("Running with column traversal\n");
-    by_column(data);
-  }
+  printf("Running with column traversal...");
+  time = clock();
+  by_column(data, arguments.rows, arguments.columns);
+  printf("\rColumn traversal tooks %fs\n", (double)time / CLOCKS_PER_SEC);
 
-  double elapsed = ((double)time) / CLOCKS_PER_SEC;
-
-  printf("Time elapsed : %f seconds\n", elapsed);
-
-  printf("(Cleaning up allocated memory...)\n");
-  for (int i = 0; i < ROWS; ++i)
+  printf("(Now cleaning up allocated memory...)\n");
+  for (int i = 0; i < arguments.rows; ++i)
   {
     free(data[i]);
   }
@@ -60,24 +52,4 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void by_row(int **data)
-{
-  for (int i = 0; i < ROWS; ++i)
-  {
-    for (int j = 0; j < ARRAY_SIZE; ++j)
-    {
-      int read = data[i][j];
-    }
-  }
-}
 
-void by_column(int **data)
-{
-  for (int i = 0; i < ARRAY_SIZE; ++i)
-  {
-    for (int j = 0; j < ROWS; ++j)
-    {
-      int read = data[j][i];
-    }
-  }
-}

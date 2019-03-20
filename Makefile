@@ -5,20 +5,24 @@ CFLAGS += -Wextra
 CFLAGS += -pedantic
 CFLAGS += -Wno-unused-parameter
 CFLAGS += -Wno-unused-variable
+CFLAGS += -Wno-missing-field-initializers
 
 VFLAGS  = --quiet
 VFLAGS += --tool=memcheck
 VFLAGS += --leak-check=full
 VFLAGS += --error-exitcode=1
 
-run: main.c
+traverse: main.c
 	@echo Compiling $@
-	@$(CC) $(CFLAGS) main.c -o run
+	@$(CC) $(CFLAGS) -largp main.c -o traverse
 
-run-debug: main.c
+clean:
+	@rm -f traverse traverse-debug
+
+traverse-debug: main.c
 	@echo Compiling $@
-	@$(CC) $(CFLAGS) -ggdb3 main.c -o run-debug
+	@$(CC) $(CFLAGS) -largp -ggdb3 main.c -o traverse-debug
 
-memcheck: run-debug
-	@valgrind $(VFLAGS) ./run-debug --row
+memcheck: traverse-debug
+	@valgrind $(VFLAGS) ./traverse-debug --row
 	@echo "Memory check passed"

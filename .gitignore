@@ -1,5 +1,5 @@
-run
-run-debug
+traverse
+traverse-debug
 
 # Prerequisites
 *.d
