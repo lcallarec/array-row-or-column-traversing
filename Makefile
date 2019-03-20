@@ -15,6 +15,10 @@ run: main.c
 	@echo Compiling $@
 	@$(CC) $(CFLAGS) main.c -o run
 
-memcheck: run
-	@valgrind $(VFLAGS) ./run --col
+run-debug: main.c
+	@echo Compiling $@
+	@$(CC) $(CFLAGS) -ggdb3 main.c -o run-debug
+
+memcheck: run-debug
+	@valgrind $(VFLAGS) ./run-debug --row
 	@echo "Memory check passed"
