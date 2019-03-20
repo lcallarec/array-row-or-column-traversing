@@ -12,16 +12,22 @@ VFLAGS += --tool=memcheck
 VFLAGS += --leak-check=full
 VFLAGS += --error-exitcode=1
 
+OS = $(shell uname -s)
+EXTLIB=
+ifeq ($(OS), Darwin)
+	EXTLIB += "-largp"
+endif
+
 traverse: main.c
 	@echo Compiling $@
-	@$(CC) $(CFLAGS) -largp main.c -o traverse
+	@$(CC) $(CFLAGS) $(EXTLIB) main.c -o traverse
 
 clean:
 	@rm -f traverse traverse-debug
 
 traverse-debug: main.c
 	@echo Compiling $@
-	@$(CC) $(CFLAGS) -largp -ggdb3 main.c -o traverse-debug
+	@$(CC) $(CFLAGS) $(EXTLIB) -ggdb3 main.c -o traverse-debug
 
 memcheck: traverse-debug
 	@valgrind $(VFLAGS) ./traverse-debug --row
